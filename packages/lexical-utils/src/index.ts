@@ -44,7 +44,13 @@ import normalizeClassNames from 'shared/normalizeClassNames';
 export {default as markSelection} from './markSelection';
 export {default as mergeRegister} from './mergeRegister';
 export {default as positionNodeOnRange} from './positionNodeOnRange';
-export {$splitNode, isHTMLAnchorElement, isHTMLElement} from 'lexical';
+export {
+  $splitNode,
+  isBlockDomNode,
+  isHTMLAnchorElement,
+  isHTMLElement,
+  isInlineDomNode,
+} from 'lexical';
 // Hotfix to export these with inlined types #5918
 export const CAN_USE_BEFORE_INPUT: boolean = CAN_USE_BEFORE_INPUT_;
 export const CAN_USE_DOM: boolean = CAN_USE_DOM_;
@@ -125,9 +131,9 @@ export function isMimeType(
  *  3. Order aware (respects the order when multiple Files are passed)
  *
  * const filesResult = await mediaFileReader(files, ['image/']);
- * filesResult.forEach(file => editor.dispatchCommand('INSERT_IMAGE', {
+ * filesResult.forEach(file => editor.dispatchCommand('INSERT_IMAGE', \\{
  *   src: file.result,
- * }));
+ * \\}));
  */
 export function mediaFileReader(
   files: Array<File>,
@@ -168,7 +174,7 @@ export function mediaFileReader(
  * @param startingNode - The node to start the search, if ommitted, it will start at the root node.
  * @param endingNode - The node to end the search, if ommitted, it will find all descendants of the startingNode.
  * @returns An array of objects of all the nodes found by the search, including their depth into the tree.
- * {depth: number, node: LexicalNode} It will always return at least 1 node (the ending node) so long as it exists
+ * \\{depth: number, node: LexicalNode\\} It will always return at least 1 node (the ending node) so long as it exists
  */
 export function $dfs(
   startingNode?: LexicalNode,
@@ -177,7 +183,8 @@ export function $dfs(
   const nodes = [];
   const start = (startingNode || $getRoot()).getLatest();
   const end =
-    endingNode || ($isElementNode(start) ? start.getLastDescendant() : start);
+    endingNode ||
+    ($isElementNode(start) ? start.getLastDescendant() || start : start);
   let node: LexicalNode | null = start;
   let depth = $getDepth(node);
 
@@ -220,6 +227,37 @@ function $getDepth(node: LexicalNode): number {
   }
 
   return depth;
+}
+
+/**
+ * Performs a right-to-left preorder tree traversal.
+ * From the starting node it goes to the rightmost child, than backtracks to paret and finds new rightmost path.
+ * It will return the next node in traversal sequence after the startingNode.
+ * The traversal is similar to $dfs functions above, but the nodes are visited right-to-left, not left-to-right.
+ * @param startingNode - The node to start the search.
+ * @returns The next node in pre-order right to left traversal sequence or `null`, if the node does not exist
+ */
+export function $getNextRightPreorderNode(
+  startingNode: LexicalNode,
+): LexicalNode | null {
+  let node: LexicalNode | null = startingNode;
+
+  if ($isElementNode(node) && node.getChildrenSize() > 0) {
+    node = node.getLastChild();
+  } else {
+    let sibling = null;
+
+    while (sibling === null && node !== null) {
+      sibling = node.getPreviousSibling();
+
+      if (sibling === null) {
+        node = node.getParent();
+      } else {
+        node = sibling;
+      }
+    }
+  }
+  return node;
 }
 
 /**
@@ -356,7 +394,7 @@ export function registerNestedElementResolver<N extends ElementNode>(
     return null;
   };
 
-  const elementNodeTransform = (node: N) => {
+  const $elementNodeTransform = (node: N) => {
     const match = $findMatch(node);
 
     if (match !== null) {
@@ -390,7 +428,7 @@ export function registerNestedElementResolver<N extends ElementNode>(
     }
   };
 
-  return editor.registerNodeTransform(targetNode, elementNodeTransform);
+  return editor.registerNodeTransform(targetNode, $elementNodeTransform);
 }
 
 /**
@@ -564,4 +602,11 @@ export function calculateZoomLevel(element: Element | null): number {
     element = element.parentElement;
   }
   return zoom;
+}
+
+/**
+ * Checks if the editor is a nested editor created by LexicalNestedComposer
+ */
+export function $isEditorIsNestedEditor(editor: LexicalEditor): boolean {
+  return editor._parentEditor !== null;
 }

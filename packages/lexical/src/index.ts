@@ -16,6 +16,8 @@ export type {
   EditorConfig,
   EditorSetOptions,
   EditorThemeClasses,
+  EditorThemeClassName,
+  EditorUpdateOptions,
   HTMLConfig,
   Klass,
   KlassConstructor,
@@ -111,6 +113,18 @@ export {
   UNDO_COMMAND,
 } from './LexicalCommands';
 export {
+  IS_ALL_FORMATTING,
+  IS_BOLD,
+  IS_CODE,
+  IS_HIGHLIGHT,
+  IS_ITALIC,
+  IS_STRIKETHROUGH,
+  IS_SUBSCRIPT,
+  IS_SUPERSCRIPT,
+  IS_UNDERLINE,
+  TEXT_TYPE_TO_FORMAT,
+} from './LexicalConstants';
+export {
   COMMAND_PRIORITY_CRITICAL,
   COMMAND_PRIORITY_EDITOR,
   COMMAND_PRIORITY_HIGH,
@@ -144,6 +158,7 @@ export {
   $getNearestNodeFromDOMNode,
   $getNearestRootOrShadowRoot,
   $getNodeByKey,
+  $getNodeByKeyOrThrow,
   $getRoot,
   $hasAncestor,
   $hasUpdateTag,
@@ -156,11 +171,15 @@ export {
   $setSelection,
   $splitNode,
   getNearestEditorFromDOMNode,
+  isBlockDomNode,
   isHTMLAnchorElement,
   isHTMLElement,
+  isInlineDomNode,
   isSelectionCapturedInDecoratorInput,
   isSelectionWithinEditor,
+  resetRandomKey,
 } from './LexicalUtils';
+export {ArtificialNode__DO_NOT_USE} from './nodes/ArtificialNode';
 export {$isDecoratorNode, DecoratorNode} from './nodes/LexicalDecoratorNode';
 export {$isElementNode, ElementNode} from './nodes/LexicalElementNode';
 export type {SerializedLineBreakNode} from './nodes/LexicalLineBreakNode';
